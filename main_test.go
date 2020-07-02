@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	port = ":50051"
+	port = "50051"
 )
 
 type server struct {
@@ -27,7 +27,7 @@ func (s *server) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*he
 }
 
 func TestHelloWorld(t *testing.T) {
-	lis, err := net.Listen("tcp", port)
+	lis, err := net.Listen("tcp", ":"+port)
 	require.NoError(t, err)
 
 	s := grpc.NewServer()
