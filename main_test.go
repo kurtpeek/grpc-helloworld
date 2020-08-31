@@ -7,9 +7,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
+	"google.golang.org/grpc/status"
 )
 
 type server struct {
@@ -17,6 +20,7 @@ type server struct {
 }
 
 func (s *server) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
+	time.Sleep(1 * time.Second)
 	log.Printf("Received: %v", in.GetName())
 	return &helloworld.HelloReply{Message: "Hello " + in.GetName()}, nil
 }
@@ -36,11 +40,14 @@ func TestHelloWorld(t *testing.T) {
 	defer conn.Close()
 	c := helloworld.NewGreeterClient(conn)
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	go func() {
+		<-time.After(500 * time.Millisecond)
+		cancel()
+	}()
 
 	log.Println("Making gRPC request...")
-	r, err := c.SayHello(ctx, &helloworld.HelloRequest{Name: "John Doe"})
-	require.NoError(t, err)
-	log.Printf("Greeting: %s", r.GetMessage())
+	_, err = c.SayHello(ctx, &helloworld.HelloRequest{Name: "John Doe"})
+	assert.Equal(t, codes.Canceled, status.Code(err))
+	assert.EqualError(t, err, "rpc error: code = Canceled desc = context canceled")
 }
