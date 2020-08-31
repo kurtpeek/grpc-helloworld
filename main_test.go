@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net"
 	"testing"
@@ -11,10 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/examples/helloworld/helloworld"
-)
-
-const (
-	port = "50051"
 )
 
 type server struct {
@@ -27,7 +22,7 @@ func (s *server) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*he
 }
 
 func TestHelloWorld(t *testing.T) {
-	lis, err := net.Listen("tcp", ":"+port)
+	lis, err := net.Listen("tcp", ":")
 	require.NoError(t, err)
 
 	s := grpc.NewServer()
@@ -36,7 +31,7 @@ func TestHelloWorld(t *testing.T) {
 	defer s.Stop()
 
 	log.Println("Dialing gRPC server...")
-	conn, err := grpc.Dial(fmt.Sprintf("localhost:%s", port), grpc.WithInsecure(), grpc.WithBlock())
+	conn, err := grpc.Dial(lis.Addr().String(), grpc.WithInsecure(), grpc.WithBlock())
 	require.NoError(t, err)
 	defer conn.Close()
 	c := helloworld.NewGreeterClient(conn)
