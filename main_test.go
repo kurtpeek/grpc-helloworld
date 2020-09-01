@@ -56,7 +56,7 @@ func TestHelloWorld(t *testing.T) {
 			httpServer := &http.Server{
 				Addr: tc.addr,
 				Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-					helloReply, err := c.SayHello(context.Background(), &helloworld.HelloRequest{Name: "John Doe"})
+					helloReply, err := c.SayHello(r.Context(), &helloworld.HelloRequest{Name: "John Doe"})
 					if err != nil {
 						log.Printf("SayHello error: %v", err)
 					}
